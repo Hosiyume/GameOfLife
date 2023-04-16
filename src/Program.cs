@@ -1,50 +1,67 @@
-int height = 15;
-
-bool[,] cells = new bool[height, height];
+int edge = 40;
+bool[,] cells = new bool[edge, edge];
+int gen = 0;
+Console.CursorVisible = false;
 
 Random random = new();
-for (int top = 0; top < height; ++top)
+for (int top = 0; top < edge; ++top)
 {
-    for (int left = 0; left < height; ++left)
+    for (int left = 0; left < edge; ++left)
     {
-        cells[top, left] = random.Next(3) > 1;
+        bool value = Convert.ToBoolean(random.Next(2));
+        cells[top, left] = value;
+        Console.BackgroundColor = value ? ConsoleColor.Black : ConsoleColor.White;
         Console.SetCursorPosition(left * 2, top);
-        Console.WriteLine(cells[top, left] ? "XX" : "  ");
+        Console.WriteLine("  ");
     }
 }
 
-Console.CursorVisible = false;
 while (true)
 {
-    Thread.Sleep(500);
-    for (int top = 0; top < height; ++top)
+    Console.Title = gen++.ToString();
+    Thread.Sleep(50);
+    bool[,] cache = (bool[,])cells.Clone();
+    int change = 0;
+    for (int top = 0; top < edge; ++top)
     {
-        for (int left = 0; left < height; ++left)
+        for (int left = 0; left < edge; ++left)
         {
             int aliveRound = 0;
-            for (int roundTop = top - (top > 0 ? 1 : 0); roundTop <= top + (top < height - 1 ? 1 : 0); ++roundTop)
+            for (int roundTop = top - (top > 0 ? 1 : 0); roundTop < top + (top < edge - 1 ? 2 : 1); ++roundTop)
             {
-                for (int roundLeft = left - (left > 0 ? 1 : 0); roundLeft <= left + (left < height - 1 ? 1 : 0); ++roundLeft)
+                for (int roundLeft = left - (left > 0 ? 1 : 0); roundLeft < left + (left < edge - 1 ? 2 : 1); roundLeft += roundTop == top ? 2 : 1)
                 {
-                    if (roundTop != top && roundLeft != left && cells[roundTop, roundLeft])
+                    if (!cells[roundTop, roundLeft])
                     {
-                        ++aliveRound;
+                        continue;
                     }
+                    ++aliveRound;
                 }
             }
             if (cells[top, left])
             {
                 if (aliveRound is < 2 or > 3)
                 {
-                    cells[top, left] = false;
+                    cache[top, left] = false;
+                    Console.SetCursorPosition(left * 2, top);
+                    Console.BackgroundColor = ConsoleColor.White;
+                    Console.WriteLine("  ");
+                    ++change;
                 }
             }
-            else if (aliveRound > 2)
+            else if (aliveRound is 3)
             {
-                cells[top, left] = true;
+                cache[top, left] = true;
+                Console.SetCursorPosition(left * 2, top);
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.WriteLine("  ");
+                ++change;
             }
-            Console.SetCursorPosition(left * 2, top);
-            Console.WriteLine(cells[top, left] ? "XX" : "  ");
         }
+    }
+    cells = cache;
+    if (change <= 0)
+    {
+        break;
     }
 }
