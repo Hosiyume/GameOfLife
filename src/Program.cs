@@ -1,14 +1,14 @@
-int edge = 40;
-bool[,] cells = new bool[edge, edge];
-int gen = 0;
+int height = Console.BufferHeight - 1;
+int width = Console.BufferWidth / 2;
+
+bool[,] cells = new bool[height, width];
 Console.CursorVisible = false;
 
-Random random = new();
-for (int top = 0; top < edge; ++top)
+for (int top = 0; top < height; ++top)
 {
-    for (int left = 0; left < edge; ++left)
+    for (int left = 0; left < width; ++left)
     {
-        bool value = Convert.ToBoolean(random.Next(2));
+        bool value = Convert.ToBoolean(Random.Shared.Next(2));
         cells[top, left] = value;
         Console.BackgroundColor = value ? ConsoleColor.Black : ConsoleColor.White;
         Console.SetCursorPosition(left * 2, top);
@@ -18,29 +18,27 @@ for (int top = 0; top < edge; ++top)
 
 while (true)
 {
-    Console.Title = gen++.ToString();
-    Thread.Sleep(50);
-    bool[,] cache = (bool[,])cells.Clone();
     int change = 0;
-    for (int top = 0; top < edge; ++top)
+    bool[,] cache = (bool[,])cells.Clone();
+    for (int top = 0; top < height; ++top)
     {
-        for (int left = 0; left < edge; ++left)
+        for (int left = 0; left < width; ++left)
         {
-            int aliveRound = 0;
-            for (int roundTop = top - (top > 0 ? 1 : 0); roundTop < top + (top < edge - 1 ? 2 : 1); ++roundTop)
+            int aliveAround = 0;
+            for (int roundTop = top - (top > 0 ? 1 : 0); roundTop < top + (top < height - 1 ? 2 : 1); ++roundTop)
             {
-                for (int roundLeft = left - (left > 0 ? 1 : 0); roundLeft < left + (left < edge - 1 ? 2 : 1); roundLeft += roundTop == top ? 2 : 1)
+                for (int roundLeft = left - (left > 0 ? 1 : 0); roundLeft < left + (left < width - 1 ? 2 : 1); roundLeft += roundTop == top ? 2 : 1)
                 {
                     if (!cells[roundTop, roundLeft])
                     {
                         continue;
                     }
-                    ++aliveRound;
+                    ++aliveAround;
                 }
             }
             if (cells[top, left])
             {
-                if (aliveRound is < 2 or > 3)
+                if (aliveAround is < 2 or > 3)
                 {
                     cache[top, left] = false;
                     Console.SetCursorPosition(left * 2, top);
@@ -49,7 +47,7 @@ while (true)
                     ++change;
                 }
             }
-            else if (aliveRound is 3)
+            else if (aliveAround is 3)
             {
                 cache[top, left] = true;
                 Console.SetCursorPosition(left * 2, top);
@@ -64,4 +62,5 @@ while (true)
     {
         break;
     }
+    Thread.Sleep(50);
 }
